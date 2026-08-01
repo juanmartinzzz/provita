@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { Sidebar, type SidebarNavSection } from "../components/Sidebar/Sidebar";
 import {
 	IconBriefcase,
@@ -7,6 +7,7 @@ import {
 	IconStory,
 	IconTrophy,
 } from "../components/icons/DotIcons";
+import { signOut, useSession } from "../lib/auth-client";
 import "./AppLayout.css";
 
 const sections: SidebarNavSection[] = [
@@ -56,17 +57,27 @@ const sections: SidebarNavSection[] = [
 ];
 
 export function AppLayout() {
+	const navigate = useNavigate();
+	const { data: session } = useSession();
+	const user = session?.user;
+
 	return (
 		<div className="app-shell">
 			<Sidebar
 				sections={sections}
 				user={{
-					name: "Alex Rivera",
-					email: "alex@provita.app",
+					name: user?.name ?? "Account",
+					email: user?.email ?? "",
 					company: "ProVita",
 				}}
 				onLogout={() => {
-					window.alert("Logout wired later.");
+					void signOut({
+						fetchOptions: {
+							onSuccess: () => {
+								navigate("/login", { replace: true });
+							},
+						},
+					});
 				}}
 			/>
 			<main className="app-shell__main">

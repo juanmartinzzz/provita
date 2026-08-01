@@ -6,4 +6,13 @@ import { cloudflare } from "@cloudflare/vite-plugin";
 // `vite build` / deploy keeps the Cloudflare plugin so assets + Worker ship together.
 export default defineConfig(({ command }) => ({
 	plugins: [react(), ...(command === "serve" ? [] : [cloudflare()])],
+	// Unusual high port to avoid clashing with other local apps.
+	server: {
+		port: 47391,
+		strictPort: true,
+	},
+	preview: {
+		port: 47392,
+		strictPort: true,
+	},
 }));

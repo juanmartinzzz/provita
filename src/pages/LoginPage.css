@@ -1,0 +1,103 @@
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-page);
+}
+
+.login-page__panel {
+  width: min(100%, 26rem);
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+  border-radius: var(--radius-bubble);
+  border: var(--bar-thin) solid var(--color-border);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-bubble);
+}
+
+.login-page__brand {
+  margin: 0 0 1.25rem;
+  font-size: 1.05rem;
+  color: var(--color-accent);
+}
+
+.login-page__panel h1 {
+  font-size: clamp(1.6rem, 3vw, 2rem);
+}
+
+.login-page__copy {
+  margin-top: 0.55rem;
+  color: var(--color-ink-muted);
+  max-width: 32ch;
+}
+
+.login-page__modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.5rem 0 1.25rem;
+}
+
+.login-page__modes button {
+  border-radius: var(--radius-full);
+  border: var(--bar-thin) solid var(--color-border-strong);
+  padding: 0.4rem 0.95rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  background: transparent;
+  transition: background var(--transition), color var(--transition);
+}
+
+.login-page__modes button.is-active {
+  background: var(--color-ink);
+  color: var(--color-panel);
+}
+
+.login-page__form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.login-page__form label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.login-page__form label span {
+  font-size: 0.78rem;
+  letter-spacing: var(--letter-wide);
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+  font-family: var(--font-mono);
+}
+
+.login-page__form input {
+  width: 100%;
+  border: var(--bar-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 0.8rem;
+  background: var(--color-surface);
+}
+
+.login-page__error {
+  color: var(--color-accent);
+  font-size: 0.9rem;
+}
+
+.login-page__submit {
+  margin-top: 0.35rem;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  color: #fff;
+  padding: 0.75rem 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: background var(--transition), transform var(--transition);
+}
+
+.login-page__submit:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.login-page__submit:active:not(:disabled) {
+  transform: translateY(1px);
+}
