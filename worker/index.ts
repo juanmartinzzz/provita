@@ -1,14 +1,11 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createAuth, type Session, type SessionUser } from "./auth.ts";
-
-type AppEnv = {
-	Bindings: Env;
-	Variables: {
-		user: SessionUser | null;
-		session: Session | null;
-	};
-};
+import achievements from "./routes/achievements.ts";
+import jobs from "./routes/jobs.ts";
+import resumes from "./routes/resumes.ts";
+import summaries from "./routes/summaries.ts";
+import { requireUser, type AppEnv } from "./util.ts";
 
 const app = new Hono<AppEnv>();
 
@@ -53,12 +50,6 @@ app.get("/api/health", (c) =>
 	}),
 );
 
-function requireUser(c: { get: (key: "user") => SessionUser | null }) {
-	const user = c.get("user");
-	if (!user) return null;
-	return user;
-}
-
 app.get("/api/me", (c) => {
 	const user = requireUser(c);
 	if (!user) return c.json({ error: "Unauthorized" }, 401);
@@ -84,62 +75,33 @@ app.get("/api/profile", async (c) => {
 	return c.json({ profile });
 });
 
-app.get("/api/jobs", async (c) => {
-	const user = requireUser(c);
-	if (!user) return c.json({ error: "Unauthorized" }, 401);
-
-	const { results: jobs } = await c.env.DB.prepare(
-		`SELECT id, company, title, location, employment_type, start_date, end_date,
-            is_current, summary, created_at
-     FROM jobs
-     WHERE profile_id = ?
-     ORDER BY is_current DESC, start_date DESC`,
-	)
-		.bind(user.id)
-		.all();
-
-	const { results: achievements } = await c.env.DB.prepare(
-		`SELECT id, job_id, title, description, impact_metric, tags, achieved_at
-     FROM achievements a
-     JOIN jobs j ON j.id = a.job_id
-     WHERE j.profile_id = ?
-     ORDER BY a.achieved_at DESC`,
-	)
-		.bind(user.id)
-		.all();
-
-	const byJob = new Map<string, typeof achievements>();
-	for (const achievement of achievements) {
-		const jobId = String(achievement.job_id);
-		const list = byJob.get(jobId) ?? [];
-		list.push(achievement);
-		byJob.set(jobId, list);
-	}
-
-	return c.json({
-		jobs: jobs.map((job) => ({
-			...job,
-			is_current: Boolean(job.is_current),
-			achievements: byJob.get(String(job.id)) ?? [],
-		})),
-	});
-});
-
 app.get("/api/stats", async (c) => {
 	const user = requireUser(c);
 	if (!user) return c.json({ error: "Unauthorized" }, 401);
 
-	const jobs = await c.env.DB.prepare(
+	const jobsCount = await c.env.DB.prepare(
 		`SELECT COUNT(*) AS count FROM jobs WHERE profile_id = ?`,
 	)
 		.bind(user.id)
 		.first<{ count: number }>();
 
-	const achievements = await c.env.DB.prepare(
+	const achievementsCount = await c.env.DB.prepare(
 		`SELECT COUNT(*) AS count
      FROM achievements a
      JOIN jobs j ON j.id = a.job_id
      WHERE j.profile_id = ?`,
+	)
+		.bind(user.id)
+		.first<{ count: number }>();
+
+	const resumesCount = await c.env.DB.prepare(
+		`SELECT COUNT(*) AS count FROM resumes WHERE profile_id = ?`,
+	)
+		.bind(user.id)
+		.first<{ count: number }>();
+
+	const summariesCount = await c.env.DB.prepare(
+		`SELECT COUNT(*) AS count FROM professional_summaries WHERE profile_id = ?`,
 	)
 		.bind(user.id)
 		.first<{ count: number }>();
@@ -152,8 +114,10 @@ app.get("/api/stats", async (c) => {
 
 	return c.json({
 		stats: {
-			jobs: jobs?.count ?? 0,
-			achievements: achievements?.count ?? 0,
+			jobs: jobsCount?.count ?? 0,
+			achievements: achievementsCount?.count ?? 0,
+			resumes: resumesCount?.count ?? 0,
+			summaries: summariesCount?.count ?? 0,
 			currentRole: current
 				? `${current.title} · ${current.company}`
 				: "No current role",
@@ -161,4 +125,12 @@ app.get("/api/stats", async (c) => {
 	});
 });
 
+app.route("/api", jobs);
+app.route("/api", achievements);
+app.route("/api", summaries);
+app.route("/api", resumes);
+
 export default app;
+
+// Keep Session types referenced for Env variable typing clarity
+export type { Session, SessionUser };
