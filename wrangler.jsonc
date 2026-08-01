@@ -1,6 +1,13 @@
 /**
  * For more details on how to configure Wrangler, refer to:
  * https://developers.cloudflare.com/workers/wrangler/configuration/
+ *
+ * Auth is env-only — no account_id here. Copy .env.example → .env and set:
+ *   CLOUDFLARE_API_TOKEN  — dashboard API token (Workers Scripts:Edit)
+ *   CLOUDFLARE_ACCOUNT_ID — target Cloudflare account
+ * Wrangler reads these system env vars for deploy/whoami; skip interactive login.
+ *
+ * Create D1 on that account, then set database_id below.
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
@@ -15,11 +22,14 @@
 	},
 	"upload_source_maps": true,
 	"compatibility_flags": ["nodejs_compat"],
+	"vars": {
+		"BETTER_AUTH_URL": "https://provita.juan-martinzzz.workers.dev"
+	},
 	"d1_databases": [
 		{
 			"binding": "DB",
 			"database_name": "provita-db",
-			"database_id": "d56094a4-744b-4a03-b4ef-423a09e73179",
+			"database_id": "6f63cf8f-2e01-493b-a2c1-b87332de28a9",
 			"migrations_dir": "migrations"
 		}
 	]

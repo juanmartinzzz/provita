@@ -1,0 +1,3 @@
+# Copied to `.dev.vars` for `wrangler dev` / local Worker runtime.
+# Production secrets: `npx wrangler secret put BETTER_AUTH_SECRET`
+BETTER_AUTH_SECRET=
