@@ -1,0 +1,155 @@
+@font-face {
+  font-family: "Ndot";
+  src: local("Ndot"), local("Ndot-55");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: var(--color-ink);
+  background:
+    radial-gradient(circle at 1px 1px, rgba(11, 11, 11, 0.08) 1px, transparent 0) 0 0 / 12px 12px,
+    linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-led) 100%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  opacity: var(--color-disabled);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+p {
+  margin: 0;
+}
+
+.font-ndot {
+  font-family: var(--font-ndot);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.thin-bar {
+  height: var(--bar-thin);
+  background: var(--color-border);
+  border: 0;
+  margin: 0;
+}
+
+.bubble {
+  background: var(--color-panel);
+  border: var(--bar-thin) solid var(--color-border);
+  border-radius: var(--radius-bubble);
+  box-shadow: var(--shadow-soft);
+}
+
+.led-glyph {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 4px);
+  gap: 3px;
+}
+
+.led-glyph span {
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--color-ink);
+}
+
+.led-glyph span.off {
+  background: var(--color-border);
+}
+
+.pixel-frame {
+  border: var(--bar-thin) solid var(--color-ink);
+  box-shadow:
+    2px 0 0 var(--color-ink),
+    -2px 0 0 var(--color-ink),
+    0 2px 0 var(--color-ink),
+    0 -2px 0 var(--color-ink);
+}
+
+.placeholder-page {
+  padding: 2rem;
+  border-radius: var(--radius-bubble);
+  border: var(--bar-thin) solid var(--color-border);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-soft);
+}
+
+.placeholder-page h1 {
+  font-family: var(--font-ndot);
+  letter-spacing: 0.12em;
+  font-size: 1.4rem;
+}
+
+.placeholder-page p {
+  margin-top: 0.75rem;
+  color: var(--color-ink-muted);
+  max-width: 42ch;
+}

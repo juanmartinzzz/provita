@@ -1,0 +1,53 @@
+:root {
+  /* Monochrome high-contrast palette + red accent */
+  --color-bg: #ececec;
+  --color-bg-led: #e4e4e4;
+  --color-surface: #f7f7f7;
+  --color-panel: #ffffff;
+  --color-ink: #0b0b0b;
+  --color-ink-secondary: #2e2e2e;
+  --color-ink-muted: #6f6f6f;
+  --color-ink-faint: #9a9a9a;
+  --color-border: #cfcfcf;
+  --color-border-strong: #0b0b0b;
+  --color-hover: rgba(11, 11, 11, 0.05);
+  --color-active-row: #ededed;
+  --color-accent: #e10600;
+  --color-accent-hover: #c10500;
+  --color-accent-soft: rgba(225, 6, 0, 0.1);
+  --color-disabled: 0.5;
+  --color-backdrop: rgba(11, 11, 11, 0.45);
+
+  --font-sans: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
+  --font-display: "Syne", "Manrope", sans-serif;
+  /* DotGothic16 stands in for Ndot (proprietary). Drop real Ndot files into /public/fonts to override. */
+  --font-ndot: "Ndot", "DotGothic16", "Courier New", monospace;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", ui-monospace, monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-bubble: 22px;
+  --radius-full: 9999px;
+
+  --shadow-soft: 0 4px 22px rgba(11, 11, 11, 0.07);
+  --shadow-bubble: 0 8px 28px rgba(11, 11, 11, 0.08);
+
+  --sidebar-width-expanded: 260px;
+  --sidebar-width-collapsed: 72px;
+  --bar-thin: 1px;
+  --space-page: clamp(1.25rem, 3vw, 2.5rem);
+  --letter-wide: 0.08em;
+  --transition: 200ms ease;
+  --focus-ring: 0 0 0 2px var(--color-panel), 0 0 0 4px var(--color-ink);
+
+  --table-pad-y: 0.9rem;
+  --table-pad-x: 1rem;
+  --table-icon: 1rem;
+  --mobile-bp: 768px;
+}
+
+[data-density="compact"] {
+  --table-pad-y: 0.45rem;
+  --table-pad-x: 0.65rem;
+  --table-icon: 0.85rem;
+}

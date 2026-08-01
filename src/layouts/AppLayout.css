@@ -1,0 +1,29 @@
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-shell__main {
+  margin-left: var(--sidebar-width-expanded);
+  min-height: 100vh;
+  transition: margin-left var(--transition);
+}
+
+.app-shell:has(.sidebar[data-collapsed="true"]) .app-shell__main {
+  margin-left: var(--sidebar-width-collapsed);
+}
+
+.app-shell__content {
+  padding: var(--space-page);
+  padding-top: calc(var(--space-page) + 0.25rem);
+  max-width: 1280px;
+}
+
+@media (max-width: 768px) {
+  .app-shell__main {
+    margin-left: 0;
+  }
+
+  .app-shell__content {
+    padding-top: calc(60px + 1rem);
+  }
+}

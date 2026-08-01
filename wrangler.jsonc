@@ -1,0 +1,26 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "provita",
+	"main": "worker/index.ts",
+	"compatibility_date": "2026-08-01",
+	"assets": {
+		"not_found_handling": "single-page-application"
+	},
+	"observability": {
+		"enabled": true
+	},
+	"upload_source_maps": true,
+	"compatibility_flags": ["nodejs_compat"],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "provita-db",
+			"database_id": "d56094a4-744b-4a03-b4ef-423a09e73179",
+			"migrations_dir": "migrations"
+		}
+	]
+}
