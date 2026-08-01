@@ -3,8 +3,10 @@ import { Sidebar, type SidebarNavSection } from "../components/Sidebar/Sidebar";
 import {
 	IconBriefcase,
 	IconDashboard,
+	IconResume,
 	IconSettings,
 	IconStory,
+	IconSummary,
 	IconTrophy,
 } from "../components/icons/DotIcons";
 import { signOut, useSession } from "../lib/auth-client";
@@ -26,6 +28,12 @@ const sections: SidebarNavSection[] = [
 				label: "Jobs",
 				href: "/jobs",
 				icon: <IconBriefcase />,
+			},
+			{
+				id: "resumes",
+				label: "Resumes",
+				href: "/resumes",
+				icon: <IconResume />,
 				created: new Date().toISOString().slice(0, 10),
 			},
 		],
@@ -44,6 +52,13 @@ const sections: SidebarNavSection[] = [
 					label: "Achievements",
 					href: "/achievements",
 					icon: <IconTrophy />,
+				},
+				{
+					id: "summaries",
+					label: "Summaries",
+					href: "/summaries",
+					icon: <IconSummary />,
+					created: new Date().toISOString().slice(0, 10),
 				},
 				{
 					id: "settings",

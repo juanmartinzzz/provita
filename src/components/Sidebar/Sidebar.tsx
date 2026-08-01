@@ -98,12 +98,16 @@ export function Sidebar({
 			.slice(0, 2)
 			.toUpperCase();
 
+	const isActivePath = (href: string) =>
+		location.pathname === href ||
+		(href !== "/" && location.pathname.startsWith(`${href}/`));
+
 	const renderItem = (item: SidebarNavItem, opts?: { nested?: boolean }) => (
 		<NavLink
 			key={item.id}
 			to={item.href}
 			className="sidebar__item"
-			data-active={location.pathname === item.href ? "true" : "false"}
+			data-active={isActivePath(item.href) ? "true" : "false"}
 			data-created={item.created}
 			data-nested={opts?.nested ? "true" : "false"}
 			title={item.label}

@@ -178,3 +178,37 @@ export function IconMenu(props: IconProps) {
 		</DotIcon>
 	);
 }
+
+export function IconResume(props: IconProps) {
+	return (
+		<DotIcon {...props}>
+			<circle cx="6" cy="4" r="1.3" />
+			<circle cx="10" cy="4" r="1.3" />
+			<circle cx="14" cy="4" r="1.3" />
+			<circle cx="6" cy="8.5" r="1.3" />
+			<circle cx="10" cy="8.5" r="1.3" />
+			<circle cx="14" cy="8.5" r="1.3" />
+			<circle cx="6" cy="13" r="1.3" />
+			<circle cx="10" cy="13" r="1.3" />
+			<circle cx="6" cy="17" r="1.3" />
+			<circle cx="10" cy="17" r="1.3" />
+			<circle cx="14" cy="17" r="1.3" />
+		</DotIcon>
+	);
+}
+
+export function IconSummary(props: IconProps) {
+	return (
+		<DotIcon {...props}>
+			<circle cx="4" cy="5" r="1.3" />
+			<circle cx="8" cy="5" r="1.3" />
+			<circle cx="12" cy="5" r="1.3" />
+			<circle cx="16" cy="5" r="1.3" />
+			<circle cx="4" cy="10" r="1.3" />
+			<circle cx="8" cy="10" r="1.3" />
+			<circle cx="12" cy="10" r="1.3" />
+			<circle cx="4" cy="15" r="1.3" />
+			<circle cx="8" cy="15" r="1.3" />
+		</DotIcon>
+	);
+}

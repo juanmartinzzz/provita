@@ -1,40 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
 	TableExpandableRows,
 	type TableColumn,
 	type TableFilter,
 } from "../components/TableExpandableRows/TableExpandableRows";
 import { apiGet } from "../lib/api";
+import type { Job, Stats } from "../lib/types";
+import "../styles/workspace.css";
 import "./Dashboard.css";
-
-type Achievement = {
-	id: string;
-	job_id: string;
-	title: string;
-	description: string | null;
-	impact_metric: string | null;
-	tags: string | null;
-	achieved_at: string | null;
-};
-
-type Job = {
-	id: string;
-	company: string;
-	title: string;
-	location: string | null;
-	employment_type: string;
-	start_date: string;
-	end_date: string | null;
-	is_current: boolean;
-	summary: string | null;
-	achievements: Achievement[];
-};
-
-type Stats = {
-	jobs: number;
-	achievements: number;
-	currentRole: string;
-};
 
 const employmentLabels: Record<string, string> = {
 	full_time: "Full-time",
@@ -199,12 +173,12 @@ export function Dashboard() {
 					edge.
 				</p>
 				<div className="dashboard__actions">
-					<button type="button" className="btn btn--primary">
+					<Link to="/achievements" className="btn btn--primary">
 						Add achievement
-					</button>
-					<button type="button" className="btn btn--ghost">
-						Export story
-					</button>
+					</Link>
+					<Link to="/resumes" className="btn btn--ghost">
+						Build resume
+					</Link>
 				</div>
 			</section>
 
@@ -224,11 +198,13 @@ export function Dashboard() {
 					<div className="stat-bubble__meta">Proof points ready to reuse</div>
 				</article>
 				<article className="stat-bubble">
-					<div className="stat-bubble__label">Current</div>
-					<div className="stat-bubble__value" style={{ fontSize: "1.15rem" }}>
+					<div className="stat-bubble__label">Resumes</div>
+					<div className="stat-bubble__value">
+						{loading ? "—" : (stats?.resumes ?? 0)}
+					</div>
+					<div className="stat-bubble__meta">
 						{loading ? "—" : (stats?.currentRole ?? "—")}
 					</div>
-					<div className="stat-bubble__meta">Live role from D1</div>
 				</article>
 			</section>
 
