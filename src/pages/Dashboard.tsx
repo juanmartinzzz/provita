@@ -6,6 +6,7 @@ import {
 	type TableFilter,
 } from "../components/TableExpandableRows/TableExpandableRows";
 import { apiGet } from "../lib/api";
+import { formatDateRange } from "../lib/dates";
 import type { Job, Stats } from "../lib/types";
 import "../styles/workspace.css";
 import "./Dashboard.css";
@@ -15,15 +16,6 @@ const employmentLabels: Record<string, string> = {
 	contract: "Contract",
 	internship: "Internship",
 };
-
-function formatDate(value: string | null): string {
-	if (!value) return "Present";
-	const date = new Date(`${value}T00:00:00`);
-	return date.toLocaleDateString(undefined, {
-		month: "short",
-		year: "numeric",
-	});
-}
 
 function LedMark() {
 	return (
@@ -137,7 +129,9 @@ export function Dashboard() {
 				sortValue: (row) => row.start_date,
 				cell: (row) => (
 					<span>
-						{formatDate(row.start_date)} — {formatDate(row.end_date)}
+						{formatDateRange(row.start_date, row.end_date, {
+							current: row.is_current,
+						})}
 						{row.is_current ? (
 							<>
 								{" "}

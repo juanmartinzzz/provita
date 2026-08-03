@@ -20,8 +20,7 @@
 
   --font-sans: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
   --font-display: "Syne", "Manrope", sans-serif;
-  /* DotGothic16 stands in for Ndot (proprietary). Drop real Ndot files into /public/fonts to override. */
-  --font-ndot: "Ndot", "DotGothic16", "Courier New", monospace;
+  --font-bitcount: "Bitcount Single", "Courier New", monospace;
   --font-mono: "IBM Plex Mono", "SFMono-Regular", ui-monospace, monospace;
 
   --radius-sm: 6px;

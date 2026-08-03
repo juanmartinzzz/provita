@@ -1,3 +1,4 @@
+import { Eye, EyeOff } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { signIn, signUp, useSession } from "../lib/auth-client";
@@ -11,6 +12,7 @@ export function LoginPage() {
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [showPassword, setShowPassword] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [busy, setBusy] = useState(false);
 
@@ -54,7 +56,7 @@ export function LoginPage() {
 	return (
 		<div className="login-page">
 			<div className="login-page__panel">
-				<p className="login-page__brand font-ndot">PROVITA</p>
+				<p className="login-page__brand font-bitcount">PROVITA</p>
 				<h1>{mode === "signin" ? "Welcome back" : "Create your account"}</h1>
 				<p className="login-page__copy">
 					{mode === "signin"
@@ -118,15 +120,26 @@ export function LoginPage() {
 
 					<label>
 						<span>Password</span>
-						<input
-							name="password"
-							type="password"
-							autoComplete={mode === "signup" ? "new-password" : "current-password"}
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							required
-							minLength={8}
-						/>
+						<div className="login-page__password">
+							<input
+								name="password"
+								type={showPassword ? "text" : "password"}
+								autoComplete={mode === "signup" ? "new-password" : "current-password"}
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+								required
+								minLength={8}
+							/>
+							<button
+								type="button"
+								className="login-page__password-toggle"
+								onClick={() => setShowPassword((prev) => !prev)}
+								aria-label={showPassword ? "Hide password" : "Show password"}
+								aria-pressed={showPassword}
+							>
+								{showPassword ? <EyeOff size={18} strokeWidth={1.75} /> : <Eye size={18} strokeWidth={1.75} />}
+							</button>
+						</div>
 					</label>
 
 					{error ? <p className="login-page__error">{error}</p> : null}

@@ -78,6 +78,40 @@
   background: var(--color-surface);
 }
 
+.login-page__password {
+  position: relative;
+}
+
+.login-page__password input {
+  padding-right: 2.75rem;
+}
+
+.login-page__password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-ink-muted);
+  transform: translateY(-50%);
+  transition: color var(--transition), background var(--transition);
+}
+
+.login-page__password-toggle:hover {
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-ink) 6%, transparent);
+}
+
+.login-page__password-toggle:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
 .login-page__error {
   color: var(--color-accent);
   font-size: 0.9rem;

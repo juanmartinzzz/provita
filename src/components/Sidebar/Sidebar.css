@@ -49,16 +49,20 @@
   place-items: center;
   border: var(--bar-thin) solid var(--color-ink);
   border-radius: 8px;
-  font-family: var(--font-ndot);
+  font-family: var(--font-bitcount);
+  font-weight: 400;
   font-size: 0.7rem;
   letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .sidebar__logo-text {
-  font-family: var(--font-ndot);
+  font-family: var(--font-bitcount);
+  font-weight: 400;
   font-size: 0.95rem;
   letter-spacing: 0.16em;
   white-space: nowrap;
+  text-transform: uppercase;
 }
 
 .sidebar__toggle {
@@ -244,9 +248,11 @@
   color: #fff;
   display: grid;
   place-items: center;
-  font-family: var(--font-ndot);
+  font-family: var(--font-bitcount);
+  font-weight: 400;
   font-size: 0.7rem;
   letter-spacing: 0.08em;
+  text-transform: uppercase;
   flex-shrink: 0;
 }
 
@@ -341,9 +347,11 @@
 }
 
 .mobile-topbar__brand {
-  font-family: var(--font-ndot);
+  font-family: var(--font-bitcount);
+  font-weight: 400;
   letter-spacing: 0.16em;
   font-size: 0.9rem;
+  text-transform: uppercase;
 }
 
 .mobile-topbar__menu {
@@ -418,8 +426,10 @@
   }
 
   .mobile-overlay__title {
-    font-family: var(--font-ndot);
+    font-family: var(--font-bitcount);
+    font-weight: 400;
     letter-spacing: 0.14em;
+    text-transform: uppercase;
   }
 
   .mobile-overlay__close {

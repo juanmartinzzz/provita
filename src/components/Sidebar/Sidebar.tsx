@@ -1,17 +1,20 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
 	IconChevron,
 	IconLogout,
 	IconMenu,
+	type IconProps,
 } from "../icons/DotIcons";
 import "./Sidebar.css";
+
+export type SidebarIcon = ComponentType<Pick<IconProps, "active" | "size">>;
 
 export type SidebarNavItem = {
 	id: string;
 	label: string;
 	href: string;
-	icon: ReactNode;
+	icon: SidebarIcon;
 	created?: string;
 };
 
@@ -23,7 +26,7 @@ export type SidebarNavSection = {
 	group?: {
 		id: string;
 		label: string;
-		icon: ReactNode;
+		icon: SidebarIcon;
 		defaultOpen?: boolean;
 		items: SidebarNavItem[];
 	};
@@ -102,21 +105,27 @@ export function Sidebar({
 		location.pathname === href ||
 		(href !== "/" && location.pathname.startsWith(`${href}/`));
 
-	const renderItem = (item: SidebarNavItem, opts?: { nested?: boolean }) => (
-		<NavLink
-			key={item.id}
-			to={item.href}
-			className="sidebar__item"
-			data-active={isActivePath(item.href) ? "true" : "false"}
-			data-created={item.created}
-			data-nested={opts?.nested ? "true" : "false"}
-			title={item.label}
-		>
-			<span className="sidebar__item-icon">{item.icon}</span>
-			<span className="sidebar__item-label">{item.label}</span>
-			{isNew(item.created) ? <span className="sidebar__badge">new</span> : null}
-		</NavLink>
-	);
+	const renderItem = (item: SidebarNavItem, opts?: { nested?: boolean }) => {
+		const active = isActivePath(item.href);
+		const ItemIcon = item.icon;
+		return (
+			<NavLink
+				key={item.id}
+				to={item.href}
+				className="sidebar__item"
+				data-active={active ? "true" : "false"}
+				data-created={item.created}
+				data-nested={opts?.nested ? "true" : "false"}
+				title={item.label}
+			>
+				<span className="sidebar__item-icon">
+					<ItemIcon active={active} />
+				</span>
+				<span className="sidebar__item-label">{item.label}</span>
+				{isNew(item.created) ? <span className="sidebar__badge">new</span> : null}
+			</NavLink>
+		);
+	};
 
 	return (
 		<>
@@ -138,17 +147,24 @@ export function Sidebar({
 				<hr className="thin-bar" />
 
 				<nav className="sidebar__nav" aria-label="Primary">
-					{sections.map((section, index) => (
+					{sections.map((section, index) => {
+						const group = section.group;
+						const GroupIcon = group?.icon;
+						const groupActive = group
+							? group.items.some((item) => isActivePath(item.href))
+							: false;
+
+						return (
 						<div key={section.id}>
 							{index > 0 ? <div className="sidebar__divider" /> : null}
 							{section.label ? (
 								<div className="sidebar__section-label">{section.label}</div>
 							) : null}
 							{section.items?.map((item) => renderItem(item))}
-							{section.group ? (
+							{group && GroupIcon ? (
 								<div
 									className="sidebar__group"
-									data-open={openGroups[section.group.id] ? "true" : "false"}
+									data-open={openGroups[group.id] ? "true" : "false"}
 								>
 									<button
 										type="button"
@@ -156,19 +172,21 @@ export function Sidebar({
 										onClick={() =>
 											setOpenGroups((prev) => ({
 												...prev,
-												[section.group!.id]: !prev[section.group!.id],
+												[group.id]: !prev[group.id],
 											}))
 										}
 									>
-										<span className="sidebar__item-icon">{section.group.icon}</span>
-										<span className="sidebar__group-label">{section.group.label}</span>
+										<span className="sidebar__item-icon">
+											<GroupIcon active={groupActive} />
+										</span>
+										<span className="sidebar__group-label">{group.label}</span>
 										<span className="sidebar__group-chevron">
 											<IconChevron direction="down" size={16} />
 										</span>
 									</button>
 									<div className="sidebar__group-items">
 										<div className="sidebar__group-items-inner">
-											{section.group.items.map((item) =>
+											{group.items.map((item) =>
 												renderItem(item, { nested: true }),
 											)}
 										</div>
@@ -176,7 +194,8 @@ export function Sidebar({
 								</div>
 							) : null}
 						</div>
-					))}
+						);
+					})}
 				</nav>
 
 				<div className="sidebar__divider" />
@@ -230,17 +249,23 @@ export function Sidebar({
 						</button>
 					</div>
 					<div className="mobile-overlay__grid">
-						{flatItems.map((item) => (
-							<NavLink
-								key={item.id}
-								to={item.href}
-								className="mobile-overlay__card"
-								data-active={location.pathname === item.href ? "true" : "false"}
-							>
-								<span>{item.icon}</span>
-								<span className="mobile-overlay__card-label">{item.label}</span>
-							</NavLink>
-						))}
+						{flatItems.map((item) => {
+							const active = isActivePath(item.href);
+							const ItemIcon = item.icon;
+							return (
+								<NavLink
+									key={item.id}
+									to={item.href}
+									className="mobile-overlay__card"
+									data-active={active ? "true" : "false"}
+								>
+									<span>
+										<ItemIcon active={active} />
+									</span>
+									<span className="mobile-overlay__card-label">{item.label}</span>
+								</NavLink>
+							);
+						})}
 					</div>
 				</div>
 			</div>

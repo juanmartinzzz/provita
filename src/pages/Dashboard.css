@@ -40,11 +40,13 @@
 }
 
 .dashboard__title {
-  font-family: var(--font-ndot);
+  font-family: var(--font-bitcount);
+  font-weight: 400;
   font-size: clamp(1.7rem, 3.4vw, 2.55rem);
   letter-spacing: 0.14em;
   line-height: 1.2;
   max-width: 16ch;
+  text-transform: uppercase;
 }
 
 .dashboard__lede {

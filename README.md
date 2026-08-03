@@ -12,7 +12,7 @@ Career story and achievement manager — React (Vite) frontend on Workers Static
 
 ## Design system
 
-Monochrome grayscale UI, red accent actions, Ndot-style titles (DotGothic16 stand-in; drop real `Ndot.woff2` into `public/fonts/`), dot-matrix iconography, bubble surfaces, thin bars, sparse density.
+Monochrome grayscale UI, red accent actions, Bitcount Single titles, dot-matrix iconography, bubble surfaces, thin bars, sparse density.
 
 Central components:
 
@@ -98,7 +98,6 @@ mkdir -p repos && git clone --depth 1 https://github.com/juanmartinzzz/penny-edg
 src/           React app (dashboard, sidebar, table, /login)
 worker/        Hono API + Better Auth (D1-backed)
 migrations/    D1 SQL migrations + seed data
-public/fonts/  Optional real Ndot font files
 repos/         Local reference clones (gitignored; see repos.json)
 ```
 
