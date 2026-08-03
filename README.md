@@ -18,6 +18,7 @@ Central components:
 
 - `src/components/Sidebar` — collapsible / mobile overlay nav
 - `src/components/TableExpandableRows` — expand, multi-sort stack, filters, pagination, density
+- `src/components/SectionsCard` — divided section card with optional collapse (adapted from penny-edge-v2)
 
 ## Setup
 
