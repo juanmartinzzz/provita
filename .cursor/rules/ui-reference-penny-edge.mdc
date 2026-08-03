@@ -1,0 +1,13 @@
+---
+description: Use penny-edge-v2 as the local UI inspiration reference
+alwaysApply: true
+---
+
+# UI reference: penny-edge-v2
+
+When building or refining UI in Provita, treat **[penny-edge-v2](https://github.com/juanmartinzzz/penny-edge-v2)** as the primary interaction/UI inspiration source.
+
+- Local clone lives at `repos/penny-edge-v2` (see `repos.json`). Browse it; do not `npm install` there.
+- Prefer adapting patterns (cards, sections, motion, density, control shapes) into Provita's existing design system (`src/`, custom CSS) rather than copying files wholesale.
+- Notable starting points: `repos/penny-edge-v2/src/components/interaction/` (e.g. `SectionsCard`).
+- Refresh clones with `npm run repos:update`.

@@ -1,0 +1,10 @@
+{
+  "repos": [
+    {
+      "name": "penny-edge-v2",
+      "url": "https://github.com/juanmartinzzz/penny-edge-v2.git",
+      "alias": "penny-edge-v2",
+      "extraContext": "UI reference for Provita — browse interaction patterns, cards, layout, and CSS under repos/penny-edge-v2 (e.g. SectionsCard). Adapt inspiration into Provita's design system; do not npm install or copy stack choices blindly."
+    }
+  ]
+}

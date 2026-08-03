@@ -81,6 +81,15 @@ Production SPA (same Worker) uses same-origin `/api` and does not need this vari
 | `npm run deploy` | Build and deploy to Cloudflare |
 | `npm run db:migrate:remote` | Apply D1 migrations to production |
 | `npm run cf-typegen` | Regenerate `Env` types from Wrangler |
+| `npm run repos:update` | Pull latest into local `repos/` clones |
+
+## UI reference
+
+[penny-edge-v2](https://github.com/juanmartinzzz/penny-edge-v2) is registered in `repos.json` as a UI inspiration source. Clone locally (gitignored under `repos/`):
+
+```bash
+mkdir -p repos && git clone --depth 1 https://github.com/juanmartinzzz/penny-edge-v2.git repos/penny-edge-v2
+```
 
 ## Project layout
 
@@ -89,6 +98,7 @@ src/           React app (dashboard, sidebar, table, /login)
 worker/        Hono API + Better Auth (D1-backed)
 migrations/    D1 SQL migrations + seed data
 public/fonts/  Optional real Ndot font files
+repos/         Local reference clones (gitignored; see repos.json)
 ```
 
 Sign up at `/login`. New users get a `profiles` row keyed to their Better Auth `user.id`. API routes require a session cookie.
