@@ -32,6 +32,13 @@ achievements.get("/achievements", async (c) => {
 	return c.json({ achievements: results });
 });
 
+const ACHIEVEMENT_SELECT = `SELECT a.id, a.job_id, a.title, a.description, a.impact_metric, a.tags,
+            a.achieved_at, a.sort_order, a.created_at, a.updated_at,
+            j.company AS job_company, j.title AS job_title
+     FROM achievements a
+     JOIN jobs j ON j.id = a.job_id
+     WHERE a.id = ?`;
+
 achievements.post("/achievements", async (c) => {
 	const user = requireUser(c);
 	if (!user) return c.json({ error: "Unauthorized" }, 401);
@@ -61,14 +68,7 @@ achievements.post("/achievements", async (c) => {
 			.bind(id, jobId, title, description, impactMetric, tags, achievedAt, sortOrder)
 			.run();
 
-		const achievement = await c.env.DB.prepare(
-			`SELECT a.id, a.job_id, a.title, a.description, a.impact_metric, a.tags,
-              a.achieved_at, a.sort_order, a.created_at, a.updated_at,
-              j.company AS job_company, j.title AS job_title
-       FROM achievements a
-       JOIN jobs j ON j.id = a.job_id
-       WHERE a.id = ?`,
-		)
+		const achievement = await c.env.DB.prepare(ACHIEVEMENT_SELECT)
 			.bind(id)
 			.first();
 
@@ -77,6 +77,74 @@ achievements.post("/achievements", async (c) => {
 		return c.json(
 			{
 				error: error instanceof Error ? error.message : "Could not create achievement",
+			},
+			400,
+		);
+	}
+});
+
+achievements.post("/achievements/bulk", async (c) => {
+	const user = requireUser(c);
+	if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+	const body = await readJson<{
+		job_id?: string;
+		items?: Array<Record<string, unknown>>;
+	}>(c);
+	if (!body?.job_id || !Array.isArray(body.items) || body.items.length === 0) {
+		return c.json({ error: "job_id and non-empty items required" }, 400);
+	}
+
+	if (!(await assertJobOwned(c.env.DB, user.id, body.job_id))) {
+		return c.json({ error: "Job not found" }, 404);
+	}
+
+	try {
+		let sortOrder = await nextSortOrder(
+			c.env.DB,
+			"achievements",
+			"job_id",
+			body.job_id,
+		);
+		const createdIds: string[] = [];
+
+		const statements = body.items.map((item) => {
+			const title = requiredString(item.title, "title");
+			const id = newId("ach");
+			createdIds.push(id);
+			const statement = c.env.DB.prepare(
+				`INSERT INTO achievements (
+           id, job_id, title, description, impact_metric, tags, achieved_at, sort_order
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			).bind(
+				id,
+				body.job_id,
+				title,
+				trimOrNull(item.description),
+				trimOrNull(item.impact_metric),
+				trimOrNull(item.tags),
+				trimOrNull(item.achieved_at),
+				sortOrder,
+			);
+			sortOrder += 1;
+			return statement;
+		});
+
+		await c.env.DB.batch(statements);
+
+		const achievements = [];
+		for (const id of createdIds) {
+			const achievement = await c.env.DB.prepare(ACHIEVEMENT_SELECT)
+				.bind(id)
+				.first();
+			if (achievement) achievements.push(achievement);
+		}
+
+		return c.json({ achievements }, 201);
+	} catch (error) {
+		return c.json(
+			{
+				error: error instanceof Error ? error.message : "Could not create achievements",
 			},
 			400,
 		);
@@ -152,18 +220,69 @@ achievements.patch("/achievements/:id", async (c) => {
 		)
 		.run();
 
-	const achievement = await c.env.DB.prepare(
-		`SELECT a.id, a.job_id, a.title, a.description, a.impact_metric, a.tags,
-            a.achieved_at, a.sort_order, a.created_at, a.updated_at,
-            j.company AS job_company, j.title AS job_title
-     FROM achievements a
-     JOIN jobs j ON j.id = a.job_id
-     WHERE a.id = ?`,
-	)
+	const achievement = await c.env.DB.prepare(ACHIEVEMENT_SELECT)
 		.bind(achievementId)
 		.first();
 
 	return c.json({ achievement });
+});
+
+achievements.post("/achievements/:id/duplicate", async (c) => {
+	const user = requireUser(c);
+	if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+	const sourceId = c.req.param("id");
+	const owned = await assertAchievementOwned(c.env.DB, user.id, sourceId);
+	if (!owned) return c.json({ error: "Achievement not found" }, 404);
+
+	const source = await c.env.DB.prepare(
+		`SELECT job_id, title, description, impact_metric, tags, achieved_at, sort_order
+     FROM achievements WHERE id = ?`,
+	)
+		.bind(sourceId)
+		.first<{
+			job_id: string;
+			title: string;
+			description: string | null;
+			impact_metric: string | null;
+			tags: string | null;
+			achieved_at: string | null;
+			sort_order: number;
+		}>();
+
+	if (!source) return c.json({ error: "Achievement not found" }, 404);
+
+	const id = newId("ach");
+	const title = `${source.title} (copy)`;
+	const insertOrder = source.sort_order + 1;
+
+	await c.env.DB.prepare(
+		`UPDATE achievements
+     SET sort_order = sort_order + 1, updated_at = datetime('now')
+     WHERE job_id = ? AND sort_order >= ?`,
+	)
+		.bind(source.job_id, insertOrder)
+		.run();
+
+	await c.env.DB.prepare(
+		`INSERT INTO achievements (
+       id, job_id, title, description, impact_metric, tags, achieved_at, sort_order
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+	)
+		.bind(
+			id,
+			source.job_id,
+			title,
+			source.description,
+			source.impact_metric,
+			source.tags,
+			source.achieved_at,
+			insertOrder,
+		)
+		.run();
+
+	const achievement = await c.env.DB.prepare(ACHIEVEMENT_SELECT).bind(id).first();
+	return c.json({ achievement }, 201);
 });
 
 achievements.put("/achievements/reorder", async (c) => {
