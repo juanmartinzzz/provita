@@ -12,7 +12,6 @@ body,
 
 html {
   color-scheme: light;
-  background: var(--color-bg);
 }
 
 body {
@@ -22,20 +21,26 @@ body {
   line-height: 1.5;
   letter-spacing: 0.01em;
   color: var(--color-ink);
-  background: transparent;
+  background: linear-gradient(
+    180deg,
+    var(--color-bg) 0%,
+    var(--color-bg-led) 100%
+  );
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* Film grain via inline #page-noise (cssShowcase / Grainy Gradients pattern). */
+/* Grain sits on top of the wash at low opacity — wash color stays untouched. */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-led) 100%);
+  background: #000;
   filter: url("#page-noise");
+  opacity: 0.2;
 }
 
 #root {
