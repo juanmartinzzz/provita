@@ -227,64 +227,6 @@ achievements.patch("/achievements/:id", async (c) => {
 	return c.json({ achievement });
 });
 
-achievements.post("/achievements/:id/duplicate", async (c) => {
-	const user = requireUser(c);
-	if (!user) return c.json({ error: "Unauthorized" }, 401);
-
-	const sourceId = c.req.param("id");
-	const owned = await assertAchievementOwned(c.env.DB, user.id, sourceId);
-	if (!owned) return c.json({ error: "Achievement not found" }, 404);
-
-	const source = await c.env.DB.prepare(
-		`SELECT job_id, title, description, impact_metric, tags, achieved_at, sort_order
-     FROM achievements WHERE id = ?`,
-	)
-		.bind(sourceId)
-		.first<{
-			job_id: string;
-			title: string;
-			description: string | null;
-			impact_metric: string | null;
-			tags: string | null;
-			achieved_at: string | null;
-			sort_order: number;
-		}>();
-
-	if (!source) return c.json({ error: "Achievement not found" }, 404);
-
-	const id = newId("ach");
-	const title = `${source.title} (copy)`;
-	const insertOrder = source.sort_order + 1;
-
-	await c.env.DB.prepare(
-		`UPDATE achievements
-     SET sort_order = sort_order + 1, updated_at = datetime('now')
-     WHERE job_id = ? AND sort_order >= ?`,
-	)
-		.bind(source.job_id, insertOrder)
-		.run();
-
-	await c.env.DB.prepare(
-		`INSERT INTO achievements (
-       id, job_id, title, description, impact_metric, tags, achieved_at, sort_order
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-	)
-		.bind(
-			id,
-			source.job_id,
-			title,
-			source.description,
-			source.impact_metric,
-			source.tags,
-			source.achieved_at,
-			insertOrder,
-		)
-		.run();
-
-	const achievement = await c.env.DB.prepare(ACHIEVEMENT_SELECT).bind(id).first();
-	return c.json({ achievement }, 201);
-});
-
 achievements.put("/achievements/reorder", async (c) => {
 	const user = requireUser(c);
 	if (!user) return c.json({ error: "Unauthorized" }, 401);

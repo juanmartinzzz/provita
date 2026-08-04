@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
 import { PillSelect } from "../components/PillSelect";
 import { SortableList } from "../components/SortableList";
+import { TitleAndMetadataBar } from "../components/TitleAndMetadataBar/TitleAndMetadataBar";
 import { apiGet, apiSend, ApiError } from "../lib/api";
-import { formatDateRange } from "../lib/dates";
+import { formatDateHuman } from "../lib/dates";
 import {
 	compareJobs,
 	JOB_LIBRARY_SORT_OPTIONS,
@@ -15,42 +15,53 @@ import {
 import type { Achievement, Job } from "../lib/types";
 import "../styles/workspace.css";
 
-type Draft = {
-	title: string;
-	description: string;
-	impact_metric: string;
-	tags: string;
-	achieved_at: string;
-};
-
 type BulkLine = {
-	title: string;
-	impact_metric?: string;
-	description?: string;
+	body: string;
+	tags?: string;
 };
 
-function toDraft(item: Achievement): Draft {
-	return {
-		title: item.title,
-		description: item.description ?? "",
-		impact_metric: item.impact_metric ?? "",
-		tags: item.tags ?? "",
-		achieved_at: item.achieved_at ?? "",
-	};
+/** Normalize `a, b,, c` → `a, b, c`. */
+function normalizeTags(raw: string): string | undefined {
+	const tags = raw
+		.split(",")
+		.map((tag) => tag.trim())
+		.filter(Boolean);
+	return tags.length > 0 ? tags.join(", ") : undefined;
 }
 
-/** One achievement per line. Optional: `title | metric | description`. */
+function splitTags(tags: string | null | undefined): string[] {
+	if (!tags) return [];
+	return tags
+		.split(",")
+		.map((tag) => tag.trim())
+		.filter(Boolean);
+}
+
+/** Frontend body: one long string. Legacy metric/description folded in for display. */
+function achievementBody(item: Achievement): string {
+	return [item.title, item.impact_metric, item.description]
+		.map((part) => part?.trim())
+		.filter((part): part is string => Boolean(part))
+		.join(" · ");
+}
+
+/** One per line. Optional labels: `achievement text | label1, label2`. */
 function parseBulkLines(raw: string): BulkLine[] {
 	const lines: BulkLine[] = [];
 	for (const rawLine of raw.split(/\r?\n/)) {
 		const line = rawLine.trim();
 		if (!line) continue;
-		const parts = line.split("|").map((part) => part.trim());
-		const title = parts[0] ?? "";
-		if (!title) continue;
-		const item: BulkLine = { title };
-		if (parts[1]) item.impact_metric = parts[1];
-		if (parts[2]) item.description = parts[2];
+		const separator = line.indexOf("|");
+		const body =
+			separator === -1
+				? line
+				: line.slice(0, separator).trim();
+		if (!body) continue;
+		const item: BulkLine = { body };
+		if (separator !== -1) {
+			const tags = normalizeTags(line.slice(separator + 1));
+			if (tags) item.tags = tags;
+		}
 		lines.push(item);
 	}
 	return lines;
@@ -58,13 +69,9 @@ function parseBulkLines(raw: string): BulkLine[] {
 
 export function AchievementsPage() {
 	const [jobs, setJobs] = useState<Job[]>([]);
-	const [editingId, setEditingId] = useState<string | null>(null);
-	const [draft, setDraft] = useState<Draft | null>(null);
 	const [bulkByJob, setBulkByJob] = useState<Record<string, string>>({});
 	const [loading, setLoading] = useState(true);
-	const [savingId, setSavingId] = useState<string | null>(null);
 	const [bulkSavingJobId, setBulkSavingJobId] = useState<string | null>(null);
-	const [cloningId, setCloningId] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [librarySort, setLibrarySort] = useState<JobLibrarySort>(() =>
 		readJobLibrarySort(),
@@ -118,54 +125,10 @@ export function AchievementsPage() {
 		);
 	}
 
-	function startEdit(item: Achievement) {
-		setEditingId(item.id);
-		setDraft(toDraft(item));
-	}
-
-	function cancelEdit() {
-		setEditingId(null);
-		setDraft(null);
-	}
-
-	async function saveEdit(item: Achievement) {
-		if (!draft || !draft.title.trim()) return;
-		setSavingId(item.id);
-		setError(null);
-		try {
-			const payload = {
-				job_id: item.job_id,
-				title: draft.title.trim(),
-				description: draft.description || null,
-				impact_metric: draft.impact_metric || null,
-				tags: draft.tags || null,
-				achieved_at: draft.achieved_at || null,
-			};
-			const result = await apiSend<{ achievement: Achievement }>(
-				`/api/achievements/${item.id}`,
-				"PATCH",
-				payload,
-			);
-			setJobAchievements(item.job_id, (list) =>
-				list.map((row) =>
-					row.id === item.id ? { ...row, ...result.achievement } : row,
-				),
-			);
-			cancelEdit();
-		} catch (err) {
-			setError(
-				err instanceof ApiError ? err.message : "Could not save achievement.",
-			);
-		} finally {
-			setSavingId(null);
-		}
-	}
-
 	async function remove(item: Achievement) {
 		if (!confirm("Delete this achievement from the master library?")) return;
 		setError(null);
 		const previous = jobs;
-		if (editingId === item.id) cancelEdit();
 		setJobAchievements(item.job_id, (list) =>
 			list.filter((row) => row.id !== item.id),
 		);
@@ -176,36 +139,6 @@ export function AchievementsPage() {
 			setError(
 				err instanceof ApiError ? err.message : "Could not delete achievement.",
 			);
-		}
-	}
-
-	async function clone(item: Achievement) {
-		setCloningId(item.id);
-		setError(null);
-		try {
-			const result = await apiSend<{ achievement: Achievement }>(
-				`/api/achievements/${item.id}/duplicate`,
-				"POST",
-			);
-			const created = result.achievement;
-			setJobAchievements(item.job_id, (list) => {
-				const sorted = [...list].sort((a, b) => a.sort_order - b.sort_order);
-				const index = sorted.findIndex((row) => row.id === item.id);
-				const next = sorted.map((row) =>
-					row.sort_order >= created.sort_order && row.id !== created.id
-						? { ...row, sort_order: row.sort_order + 1 }
-						: row,
-				);
-				next.splice(index + 1, 0, created);
-				return next;
-			});
-			startEdit(created);
-		} catch (err) {
-			setError(
-				err instanceof ApiError ? err.message : "Could not clone achievement.",
-			);
-		} finally {
-			setCloningId(null);
 		}
 	}
 
@@ -243,9 +176,10 @@ export function AchievementsPage() {
 				{
 					job_id: jobId,
 					items: lines.map((line) => ({
-						title: line.title,
-						impact_metric: line.impact_metric ?? null,
-						description: line.description ?? null,
+						title: line.body,
+						impact_metric: null,
+						description: null,
+						tags: line.tags ?? null,
 					})),
 				},
 			);
@@ -267,8 +201,8 @@ export function AchievementsPage() {
 					<div className="workspace__eyebrow">Master library</div>
 					<h1 className="workspace__title">Achievements</h1>
 					<p className="workspace__lede">
-						Proof points under each job. Add many at once, edit in place, then
-						toggle them on per resume.
+						Proof points under each job. Paste many at once, reorder, and toggle
+						them on per resume.
 					</p>
 				</div>
 				<div className="workspace__actions">
@@ -327,226 +261,90 @@ export function AchievementsPage() {
 						const bulkText = bulkByJob[job.id] ?? "";
 						const pendingLines = parseBulkLines(bulkText);
 						return (
-							<section key={job.id} className="workspace__panel">
-								<div className="stack-item__head">
-									<div>
-										<h2 className="stack-item__title">
+							<section
+								key={job.id}
+								className="workspace__panel workspace__panel--barred"
+							>
+								<TitleAndMetadataBar
+									leftElements={[
+										<h2 key="title" className="title-meta-bar__title">
 											{job.title} · {job.company}
-										</h2>
-										<p className="stack-item__sub">
-											{formatDateRange(job.start_date, job.end_date, {
-												current: job.is_current,
-											})}
-											{job.location ? ` · ${job.location}` : ""}
-										</p>
-									</div>
-									<span className="counter-chip">{items.length} items</span>
-								</div>
+										</h2>,
+										<span key="start" className="title-meta-bar__meta">
+											{formatDateHuman(job.start_date, { fallback: "—" })}
+										</span>,
+										<span key="end" className="title-meta-bar__meta">
+											{job.is_current || !job.end_date
+												? "Present"
+												: formatDateHuman(job.end_date, { fallback: "—" })}
+										</span>,
+										job.location ? (
+											<span key="location" className="title-meta-bar__meta">
+												{job.location}
+											</span>
+										) : null,
+									]}
+									rightElements={[
+										<span key="count" className="counter-chip">
+											{items.length}{" "}
+											{items.length === 1 ? "item" : "items"}
+										</span>,
+									]}
+								/>
 
-								{items.length > 0 ? (
-									<div style={{ marginTop: "0.85rem" }}>
+								<div className="workspace__panel__body">
+								<div className="achievement-stack">
+									{items.length > 0 ? (
 										<SortableList
 											animate
 											items={items}
 											getId={(item) => item.id}
 											onReorder={(ids) => void reorder(job.id, ids)}
 											renderItem={(item, { dragHandleProps }) => {
-												const isEditing =
-													editingId === item.id && draft !== null;
+												const labels = splitTags(item.tags);
 												return (
-													<>
-														<div className="stack-item__head">
-															<div>
-																<div className="stack-item__title">
-																	{item.title}
-																</div>
-																<div className="stack-item__sub">
-																	{item.impact_metric
-																		? item.impact_metric
-																		: "No metric"}
-																	{item.tags ? ` · ${item.tags}` : ""}
-																</div>
-															</div>
-															<div className="stack-item__controls">
-																<button type="button" {...dragHandleProps}>
-																	⋮⋮
-																</button>
-																<button
-																	type="button"
-																	className="btn btn--ghost btn--sm"
-																	onClick={() =>
-																		isEditing
-																			? cancelEdit()
-																			: startEdit(item)
-																	}
+													<div className="stack-item__head achievement-row">
+														<div className="achievement-main">
+															<p className="achievement-body">
+																{achievementBody(item)}
+															</p>
+															{labels.length > 0 ? (
+																<ul
+																	className="achievement-labels"
+																	aria-label="Labels"
 																>
-																	{isEditing ? "Close" : "Edit"}
-																</button>
-																<button
-																	type="button"
-																	className="btn btn--ghost btn--sm"
-																	disabled={cloningId === item.id}
-																	onClick={() => void clone(item)}
-																>
-																	{cloningId === item.id
-																		? "Cloning…"
-																		: "Clone"}
-																</button>
-																<button
-																	type="button"
-																	className="btn btn--danger btn--sm"
-																	onClick={() => void remove(item)}
-																>
-																	Delete
-																</button>
-															</div>
-														</div>
-
-														<AnimatePresence initial={false}>
-															{isEditing && draft ? (
-																<motion.div
-																	key="edit"
-																	className="achievement-edit"
-																	initial={{ opacity: 0, height: 0 }}
-																	animate={{ opacity: 1, height: "auto" }}
-																	exit={{ opacity: 0, height: 0 }}
-																	transition={{ duration: 0.22 }}
-																>
-																	<div className="field-grid field-grid--2">
-																		<div className="field">
-																			<label htmlFor={`ach-title-${item.id}`}>
-																				Title
-																			</label>
-																			<input
-																				id={`ach-title-${item.id}`}
-																				value={draft.title}
-																				onChange={(e) =>
-																					setDraft({
-																						...draft,
-																						title: e.target.value,
-																					})
-																				}
-																			/>
-																		</div>
-																		<div className="field">
-																			<label htmlFor={`ach-metric-${item.id}`}>
-																				Impact metric
-																			</label>
-																			<input
-																				id={`ach-metric-${item.id}`}
-																				value={draft.impact_metric}
-																				onChange={(e) =>
-																					setDraft({
-																						...draft,
-																						impact_metric: e.target.value,
-																					})
-																				}
-																				placeholder="e.g. 3.2x faster"
-																			/>
-																		</div>
-																		<div className="field">
-																			<label htmlFor={`ach-date-${item.id}`}>
-																				Date
-																			</label>
-																			<input
-																				id={`ach-date-${item.id}`}
-																				type="date"
-																				value={draft.achieved_at}
-																				onChange={(e) =>
-																					setDraft({
-																						...draft,
-																						achieved_at: e.target.value,
-																					})
-																				}
-																			/>
-																		</div>
-																		<div className="field">
-																			<label htmlFor={`ach-tags-${item.id}`}>
-																				Tags
-																			</label>
-																			<input
-																				id={`ach-tags-${item.id}`}
-																				value={draft.tags}
-																				onChange={(e) =>
-																					setDraft({
-																						...draft,
-																						tags: e.target.value,
-																					})
-																				}
-																				placeholder="product,ux"
-																			/>
-																		</div>
-																	</div>
-																	<div
-																		className="field"
-																		style={{ marginTop: "0.85rem" }}
-																	>
-																		<label htmlFor={`ach-desc-${item.id}`}>
-																			Description
-																		</label>
-																		<textarea
-																			id={`ach-desc-${item.id}`}
-																			value={draft.description}
-																			onChange={(e) =>
-																				setDraft({
-																					...draft,
-																					description: e.target.value,
-																				})
-																			}
-																		/>
-																	</div>
-																	<div
-																		className="workspace__actions"
-																		style={{ marginTop: "0.85rem" }}
-																	>
-																		<button
-																			type="button"
-																			className="btn btn--primary btn--sm"
-																			disabled={
-																				savingId === item.id ||
-																				!draft.title.trim()
-																			}
-																			onClick={() => void saveEdit(item)}
+																	{labels.map((label) => (
+																		<li
+																			key={label}
+																			className="achievement-label"
 																		>
-																			{savingId === item.id
-																				? "Saving…"
-																				: "Save"}
-																		</button>
-																		<button
-																			type="button"
-																			className="btn btn--ghost btn--sm"
-																			onClick={cancelEdit}
-																		>
-																			Cancel
-																		</button>
-																	</div>
-																</motion.div>
-															) : item.description ? (
-																<p className="stack-item__sub">
-																	{item.description}
-																</p>
+																			{label}
+																		</li>
+																	))}
+																</ul>
 															) : null}
-														</AnimatePresence>
-													</>
+														</div>
+														<div className="stack-item__controls">
+															<button type="button" {...dragHandleProps}>
+																⋮⋮
+															</button>
+															<button
+																type="button"
+																className="btn btn--danger btn--sm"
+																onClick={() => void remove(item)}
+															>
+																Delete
+															</button>
+														</div>
+													</div>
 												);
 											}}
 										/>
-									</div>
-								) : null}
+									) : null}
 
-								<div
-									className={
-										items.length === 0
-											? "bulk-add empty-state"
-											: "bulk-add"
-									}
-									style={{ marginTop: items.length === 0 ? "0.85rem" : "1rem" }}
-								>
-									<div className="field">
-										<label htmlFor={`bulk-${job.id}`}>
-											{items.length === 0
-												? "No achievements yet — paste one per line"
-												: "Add achievements (one per line)"}
+									<div className="bulk-add">
+										<label className="sr-only" htmlFor={`bulk-${job.id}`}>
+											Add achievements, one per line
 										</label>
 										<textarea
 											id={`bulk-${job.id}`}
@@ -559,8 +357,11 @@ export function AchievementsPage() {
 												}))
 											}
 											placeholder={
-												"Shipped checkout redesign\nCut load time 40% | 40% faster | Partnered with infra\nGrew NPS 12 pts"
+												items.length === 0
+													? "Paste achievements — one per line\nShipped checkout redesign that lifted conversion 12%\nCut p95 load time 40% across checkout | performance, ux"
+													: "Add more — one per line\nAchievement text | label1, label2"
 											}
+											rows={items.length === 0 ? 4 : 2}
 											onKeyDown={(e) => {
 												if (
 													(e.metaKey || e.ctrlKey) &&
@@ -571,31 +372,29 @@ export function AchievementsPage() {
 												}
 											}}
 										/>
-										<p className="field__hint">
-											Optional format: title | metric | description. ⌘/Ctrl+Enter
-											to add.
-										</p>
+										<div className="bulk-add__footer">
+											<span className="field__hint">
+												text | label1, label2 · ⌘/Ctrl+Enter
+											</span>
+											{pendingLines.length > 0 ||
+											bulkSavingJobId === job.id ? (
+												<button
+													type="button"
+													className="btn btn--primary btn--sm"
+													disabled={
+														bulkSavingJobId === job.id ||
+														pendingLines.length === 0
+													}
+													onClick={() => void bulkAdd(job.id)}
+												>
+													{bulkSavingJobId === job.id
+														? "Adding…"
+														: `Add ${pendingLines.length}`}
+												</button>
+											) : null}
+										</div>
 									</div>
-									<div
-										className="workspace__actions"
-										style={{ marginTop: "0.75rem" }}
-									>
-										<button
-											type="button"
-											className="btn btn--primary"
-											disabled={
-												bulkSavingJobId === job.id ||
-												pendingLines.length === 0
-											}
-											onClick={() => void bulkAdd(job.id)}
-										>
-											{bulkSavingJobId === job.id
-												? "Adding…"
-												: pendingLines.length > 0
-													? `Add ${pendingLines.length} achievement${pendingLines.length === 1 ? "" : "s"}`
-													: "Add achievements"}
-										</button>
-									</div>
+								</div>
 								</div>
 							</section>
 						);
