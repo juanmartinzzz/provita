@@ -11,6 +11,32 @@
     <title>ProVita</title>
   </head>
   <body>
+    <!-- Inline SVG filter: data-URI turbulence is sandboxed and won't paint. -->
+    <svg
+      style="position: absolute; width: 0; height: 0; overflow: hidden"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <defs>
+        <filter id="page-noise" color-interpolation-filters="sRGB">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.55"
+            numOctaves="5"
+            stitchTiles="stitch"
+            result="n"
+          />
+          <!-- Lower baseFrequency + more octaves = open grain with fine detail. -->
+          <feColorMatrix type="saturate" values="0" in="n" result="grey" />
+          <feComponentTransfer in="grey" result="soft">
+            <feFuncR type="linear" slope="0.2" intercept="0.4" />
+            <feFuncG type="linear" slope="0.2" intercept="0.4" />
+            <feFuncB type="linear" slope="0.2" intercept="0.4" />
+          </feComponentTransfer>
+          <feBlend in="SourceGraphic" in2="soft" mode="soft-light" />
+        </filter>
+      </defs>
+    </svg>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

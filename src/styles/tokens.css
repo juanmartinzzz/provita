@@ -1,7 +1,7 @@
 :root {
   /* Monochrome high-contrast palette + red accent */
-  --color-bg: #ececec;
-  --color-bg-led: #e4e4e4;
+  --color-bg: #fefefe;
+  --color-bg-led: #fcfcfc;
   --color-surface: #f7f7f7;
   --color-panel: #ffffff;
   --color-ink: #0b0b0b;

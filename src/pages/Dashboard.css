@@ -9,9 +9,7 @@
   padding: clamp(1.5rem, 3vw, 2.25rem);
   border-radius: var(--radius-bubble);
   border: var(--bar-thin) solid var(--color-border);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(247, 247, 247, 0.88)),
-    radial-gradient(circle at 1px 1px, rgba(11, 11, 11, 0.16) 1px, transparent 0) 0 0 / 10px 10px;
+  background: var(--color-panel);
   box-shadow: var(--shadow-soft);
   overflow: hidden;
 }
