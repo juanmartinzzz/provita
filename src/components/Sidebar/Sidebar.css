@@ -8,6 +8,7 @@
   flex-direction: column;
   background: var(--color-panel);
   color: var(--color-ink);
+  box-shadow: 1px 0 4px rgba(11, 11, 11, 0.28);
   transition: width var(--transition);
   overflow: hidden;
 }
@@ -71,26 +72,15 @@
   display: grid;
   place-items: center;
   border: var(--bar-thin) solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full);
   transition:
     background var(--transition),
-    border-color var(--transition),
-    opacity var(--transition);
+    border-color var(--transition);
 }
 
 .sidebar__toggle:hover {
   background: var(--color-hover);
   border-color: var(--color-ink);
-}
-
-.sidebar[data-collapsed="true"] .sidebar__toggle {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.sidebar[data-collapsed="true"]:hover .sidebar__toggle {
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .sidebar__nav {
